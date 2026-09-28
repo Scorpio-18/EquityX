@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-function Signup() {
+function Login() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
 
   const handleChange = (e) => {
@@ -19,83 +20,56 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check passwords
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
     try {
       const response = await axios.post(
-        "https://equityx-backend-9dib.onrender.com/signup",
+        "https://equityx-backend-9dib.onrender.com/login",
         {
-          name: formData.name,
           email: formData.email,
           password: formData.password,
         }
       );
 
-      console.log("Signup response:", response.data);
-alert(response.data.message || "Signup successful!");
+      console.log("Login response:", response.data);
 
-      // Clear form after successful signup
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
+      // Get JWT token
+      const token = response.data.token;
+
+      // Store JWT token
+      localStorage.setItem("token", token);
+
+      alert("Login successful!");
+
+      // Go to Dashboard and pass the token
+      window.location.href =
+        "https://equityx-dashboard.onrender.com?token=" + token;
 
     } catch (error) {
-  console.log("Signup error:", error);
-  console.log("Response:", error.response);
-  console.log("Response data:", error.response?.data);
+      console.log("Login error:", error);
+      console.log("Response:", error.response);
 
-  alert(
-    error.response?.data?.message ||
-    "Signup failed. Check the console."
-  );
-}
+      alert(
+        error.response?.data?.message ||
+          "Login failed. Please check your email and password."
+      );
+    }
   };
 
   return (
     <div style={styles.page}>
       <div style={styles.container}>
 
-        <div style={styles.logo}>
-          EquityX
-        </div>
+        <div style={styles.logo}>EquityX</div>
 
-        <h1 style={styles.heading}>
-          Create an Account
-        </h1>
+        <h1 style={styles.heading}>Welcome Back</h1>
 
         <p style={styles.subtitle}>
-          Sign up to start using EquityX
+          Login to continue using EquityX
         </p>
 
         <form onSubmit={handleSubmit}>
 
           <div style={styles.inputGroup}>
-            <label style={styles.label}>
-              Full Name
-            </label>
-
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter your name"
-              value={formData.name}
-              onChange={handleChange}
-              style={styles.input}
-              required
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>
-              Email
-            </label>
+            <label style={styles.label}>Email</label>
 
             <input
               type="email"
@@ -109,31 +83,13 @@ alert(response.data.message || "Signup successful!");
           </div>
 
           <div style={styles.inputGroup}>
-            <label style={styles.label}>
-              Password
-            </label>
+            <label style={styles.label}>Password</label>
 
             <input
               type="password"
               name="password"
-              placeholder="Create a password"
+              placeholder="Enter your password"
               value={formData.password}
-              onChange={handleChange}
-              style={styles.input}
-              required
-            />
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>
-              Confirm Password
-            </label>
-
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
               onChange={handleChange}
               style={styles.input}
               required
@@ -144,15 +100,18 @@ alert(response.data.message || "Signup successful!");
             type="submit"
             style={styles.button}
           >
-            Sign Up
+            Login
           </button>
 
         </form>
 
-        <p style={styles.loginText}>
-          Already have an account?{" "}
-          <span style={styles.loginLink}>
-            Login
+        <p style={styles.signupText}>
+          Don't have an account?{" "}
+          <span
+            style={styles.signupLink}
+            onClick={() => navigate("/signup")}
+          >
+            Sign Up
           </span>
         </p>
 
@@ -235,18 +194,18 @@ const styles = {
     cursor: "pointer",
   },
 
-  loginText: {
+  signupText: {
     textAlign: "center",
     marginTop: "22px",
     fontSize: "14px",
     color: "#666",
   },
 
-  loginLink: {
+  signupLink: {
     color: "#387ed1",
     fontWeight: "600",
     cursor: "pointer",
   },
 };
 
-export default Signup;
+export default Login;
