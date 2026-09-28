@@ -4,6 +4,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+const { UserModel } = require("./model/UserModel");
 
 const { HoldingsModel } = require("./model/HoldingsModel");
 
@@ -208,6 +210,44 @@ app.post("/newOrder", async (req, res) => {
   newOrder.save();
 
   res.send("Order saved!");
+});
+
+app.post("/signup", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Check if email already exists
+    const existingUser = await UserModel.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email already registered",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user
+    const newUser = new UserModel({
+      name: name,
+      email: email,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      message: "Signup successful",
+    });
+
+  } catch (error) {
+    console.log("Signup error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
 });
 
 mongoose.connect(uri)
